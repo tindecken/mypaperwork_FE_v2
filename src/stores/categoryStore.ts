@@ -1,0 +1,69 @@
+import { defineStore } from 'pinia';
+import { api } from '../boot/axios';
+import { type GenericResponseData } from 'src/Models/GenericResponseData';
+import handleError from 'src/utils/handleError';
+import { type Category } from 'src/Models/Category/CategoryInterface';
+import { type CreateCategoryRequestModel } from 'src/Models/Category/CreateCategoryRequestModel';
+import { type EditCategoryRequestModel } from 'src/Models/Category/EditCategoryRequestModel';
+import { type DeleteCategoryRequestModel } from 'src/Models/Category/DeleteCategoryRequestModel';
+
+export const useCategoryStore = defineStore('category', {
+  state: () => {
+    return {
+      categories: [] as Category[],
+    };
+  },
+  getters: {},
+  actions: {
+    async getCategories(): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.get('/categories/get', {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        this.$patch({
+          categories: responseData.data as Category[],
+        });
+        return responseData;
+      } catch (error: any) {
+        this.$reset();
+        handleError(error);
+      }
+    },
+
+    async createCategory(body: CreateCategoryRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.post('/categories/create', body, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+    async editCategory(body: EditCategoryRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.put('/categories/update', body, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+    async deleteCategory(body: DeleteCategoryRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.delete('/categories/delete', {
+          withCredentials: true,
+          data: body,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+  },
+});

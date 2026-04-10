@@ -1,0 +1,140 @@
+import { defineStore } from 'pinia';
+import { api } from '../boot/axios';
+import { type GenericResponseData } from 'src/Models/GenericResponseData';
+import handleError from 'src/utils/handleError';
+import { type Paperwork } from 'src/Models/Paperwork/PaperworkInterface';
+import handlePaging from 'src/utils/handlePaging';
+import { type Paging } from 'src/Models/PagingInterface';
+import { type CreatePaperworkRequestModel } from 'src/Models/Paperwork/CreatePaperworkRequestModel';
+import { useCategoryStore } from './categoryStore';
+import { type PaperworkDetails } from 'src/Models/Paperwork/PaperworkDetails';
+import { type UpdatePaperworkRequestModel } from 'src/Models/Paperwork/UpdatePaperworkRequestModel';
+import { type UpdateCategoriesRequestModel } from 'src/Models/Paperwork/UpdateCategoriesRequestModel';
+
+const categoryStore = useCategoryStore();
+export const usePaperworkStore = defineStore('paperwork', {
+  state: () => {
+    return {
+      paperworks: [] as Paperwork[],
+      paperworkDetails: null as PaperworkDetails | null,
+      totalRecords: 0 as number,
+    };
+  },
+  getters: {},
+  actions: {
+    async getPaperworks(paging?: Paging): Promise<GenericResponseData | undefined> {
+      try {
+        let query = '';
+        query = handlePaging(paging);
+        const axiosResponse = await api.get(`/paperworks/getAll${query}`, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        this.$patch({
+          paperworks: responseData.data as Paperwork[],
+          totalRecords: responseData.totalRecords ?? 0,
+        });
+        return responseData;
+      } catch (error: any) {
+        this.$reset();
+        handleError(error);
+      }
+    },
+    async getPaperworksByCategoryId(categoryId: string, paging?: Paging): Promise<GenericResponseData | undefined> {
+      try {
+        let query = '';
+        query = handlePaging(paging);
+        const axiosResponse = await api.get(`/paperworks/getByCategory/${categoryId}${query}`, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        this.$patch({
+          paperworks: responseData.data as Paperwork[],
+          totalRecords: responseData.totalRecords ?? 0,
+        });
+        return responseData;
+      } catch (error: any) {
+        this.$reset();
+        handleError(error);
+      }
+    },
+    async getPaperworksById(paperworkId: string): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.get(`/paperworks/get/${paperworkId}`, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        this.$patch({
+          paperworkDetails: responseData.data as PaperworkDetails,
+        });
+        return responseData;
+      } catch (error: any) {
+        this.$reset();
+        handleError(error);
+      }
+    },
+    async createPaperwork(model: CreatePaperworkRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const formData = new FormData();
+        formData.append('categoryId', model.categoryId || '');
+        formData.append('name', model.name);
+        formData.append('note', model.note || '');
+        formData.append('issueAt', model.issueAt?.toString() || '');
+        if (model.customFields) {
+          formData.append('customFields', model.customFields);
+        }
+        model.files?.forEach((file: any) => {
+          formData.append('files', file, file.name);
+        });
+
+        const axiosResponse = await api.post('/paperworks/create', formData, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        // Reload categories after creating a new paperwork
+        await categoryStore.getCategories();
+        await this.getPaperworks();
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+    async deletePaperwork(paperworkId: string): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.delete(`/paperworks/${paperworkId}`, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        // Reload categories after creating a new paperwork
+        await categoryStore.getCategories();
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+    async updatePaperwork(model: UpdatePaperworkRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.put('/paperworks/update', model, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        return responseData;
+      } catch (error: any) {
+        handleError(error);
+      }
+    },
+    async updateCategoriesByPaperworkId(body: UpdateCategoriesRequestModel): Promise<GenericResponseData | undefined> {
+      try {
+        const axiosResponse = await api.put('/paperworks/updateCategoriesByPaperworkId', body, {
+          withCredentials: true,
+        });
+        const responseData = (await axiosResponse.data) as GenericResponseData;
+        await this.getPaperworks();
+        return responseData;
+      } catch (error: any) {
+        this.$reset();
+        handleError(error);
+      }
+    },
+  },
+});

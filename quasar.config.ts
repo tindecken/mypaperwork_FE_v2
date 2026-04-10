@@ -12,7 +12,7 @@ export default defineConfig((ctx) => {
     // app boot file (/src/boot)
     // --> boot files are part of "main.js"
     // https://v2.quasar.dev/quasar-cli-vite/boot-files
-    boot: ['i18n'],
+    boot: ['i18n', 'axios', 'deeplink'],
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#css
     css: ['app.scss'],
@@ -20,7 +20,7 @@ export default defineConfig((ctx) => {
     // https://github.com/quasarframework/quasar/tree/dev/extras
     extras: [
       // 'ionicons-v4',
-      // 'mdi-v7',
+      'mdi-v7',
       // 'fontawesome-v6',
       // 'eva-icons',
       // 'themify',
@@ -28,7 +28,9 @@ export default defineConfig((ctx) => {
       // 'roboto-font-latin-ext', // this or either 'roboto-font', NEVER both!
 
       'roboto-font', // optional, you are not bound to it
+      'material-icons-outlined', // optional, you are not bound to it
       'material-icons', // optional, you are not bound to it
+      'material-symbols-outlined',
     ],
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#build
@@ -53,7 +55,11 @@ export default defineConfig((ctx) => {
 
       // publicPath: '/',
       // analyze: true,
-      // env: {},
+      env: {
+        API_BASEURL: process.env.API_BASEURL,
+        BASEURL: process.env.BASEURL,
+        DEFAULT_PAGESIZE: process.env.DEFAULT_PAGESIZE,
+      },
       // rawDefine: {}
       // ignorePublicFolder: true,
       // minify: false,
@@ -96,13 +102,37 @@ export default defineConfig((ctx) => {
 
     // Full list of options: https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#devserver
     devServer: {
+      port: ctx.modeName === 'spa' ? 1000 : ctx.modeName === 'pwa' ? 9000 : 9090,
+      https: {
+        // Use ABSOLUTE paths or fileURLToPath(new URL('./root/relative/path', import.meta.url))
+        // https://nodejs.org/api/https.html#https_https_createserver_options_requestlistener
+        key: './localhost-key.pem',
+        cert: './localhost-cert.pem',
+      },
       // https: true,
       open: true, // opens browser window automatically
     },
 
     // https://v2.quasar.dev/quasar-cli-vite/quasar-config-file#framework
     framework: {
-      config: {},
+      config: {
+        notify: {
+          position: 'bottom',
+        },
+        loading: {
+          spinner: 'QSpinnerOval',
+          messageColor: 'amber',
+          spinnerColor: 'amber',
+          delay: 100, // ms,
+        },
+        loadingBar: {
+          color: 'secondary',
+          size: '3px',
+        },
+        capacitor: {
+          iosStatusBarPadding: true,
+        },
+      },
 
       // iconSet: 'material-icons', // Quasar icon set
       // lang: 'en-US', // Quasar language pack
@@ -115,7 +145,7 @@ export default defineConfig((ctx) => {
       // directives: [],
 
       // Quasar plugins
-      plugins: [],
+      plugins: ['Notify', 'LocalStorage', 'SessionStorage', 'Dialog', 'Loading', 'LoadingBar'],
     },
 
     // animations: 'all', // --- includes all animations

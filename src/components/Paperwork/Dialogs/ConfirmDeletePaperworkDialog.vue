@@ -1,0 +1,31 @@
+<template>
+  <DialogBase ref="dialogBaseRef" max-width="598px" min-height="150px !important" :has-footer="false" max-height="180px">
+    <template v-slot:title>
+      <span class="text-h6 text-white">Confirm Delete</span>
+    </template>
+    <template v-slot:content>
+      <div class="q-pa-md">
+        <span class="text-body1">Are you sure you want to delete this paperwork?</span>
+      </div>
+      <div class="q-pa-md justify-end row">
+        <q-btn flat label="Cancel" @click="onCancelClick" class="q-mr-sm" />
+        <q-btn color="red-7" flat label="Delete" @click="onDelete" />
+      </div>
+    </template>
+  </DialogBase>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import DialogBase from 'src/components/Dialog/DialogBase.vue';
+
+const dialogBaseRef = ref();
+
+function onDelete() {
+  dialogBaseRef.value.onDialogOK();
+}
+
+function onCancelClick() {
+  dialogBaseRef.value.onDialogCancel();
+}
+</script>
