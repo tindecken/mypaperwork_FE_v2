@@ -18,7 +18,15 @@
       <q-input readonly outlined class="col-6" v-model="issueAt" label="Issue At" />
     </div>
     <div class="row justify-end q-col-gutter-md q-mt-xs">
-      <q-input type="textarea" autogrow readonly outlined class="col-12" v-model="note" label="Note" />
+      <q-input
+        type="textarea"
+        autogrow
+        readonly
+        outlined
+        class="col-12"
+        v-model="note"
+        label="Note"
+      />
     </div>
 
     <!-- Custom Fields Section -->
@@ -40,12 +48,33 @@
     <div class="row q-mt-md title">
       <span class="self-center">Categories</span>
     </div>
-    <q-chip outlined v-for="cat in categories" :key="cat.id" outline icon="event" :class="{ 'truncate-chip-labels': truncate }" class="q-mt-md"> {{ cat.name }}</q-chip>
+    <q-chip
+      outlined
+      v-for="cat in categories"
+      :key="cat.id"
+      outline
+      icon="event"
+      :class="{ 'truncate-chip-labels': truncate }"
+      class="q-mt-md"
+    >
+      {{ cat.name }}</q-chip
+    >
     <span class="row q-mt-md title"
       >Attachments
       <q-badge class="q-ml-xs badge" color="primary" :label="attachments.length" />
     </span>
-    <q-table dense :rows="attachments" :columns="columns" row-key="id" no-data-label="No attachments" flat bordered class="q-mt-md" separator="cell" v-if="attachments.length > 0">
+    <q-table
+      dense
+      :rows="attachments"
+      :columns="columns"
+      row-key="id"
+      no-data-label="No attachments"
+      flat
+      bordered
+      class="q-mt-md"
+      separator="cell"
+      v-if="attachments.length > 0"
+    >
       <template v-slot:body="props">
         <q-tr :props="props">
           <q-td key="fileName" :props="props">
@@ -55,7 +84,11 @@
             {{ prettyBytes(props.row.fileSize) }}
           </q-td>
           <q-td key="actions" :props="props">
-            <q-btn icon="sym_o_download" flat @click="onDownloadAttachment(props.row.id, props.row.fileName)">
+            <q-btn
+              icon="sym_o_download"
+              flat
+              @click="onDownloadAttachment(props.row.id, props.row.fileName)"
+            >
               <q-tooltip style="font-size: small">Download</q-tooltip>
             </q-btn>
           </q-td>
@@ -76,11 +109,29 @@
         }"
         style="max-width: 300px; height: 150px"
       >
-        <q-img :src="getImageUrl(image.imageBase64!)" @click="showImages(image, images)" class="images">
-          <q-icon class="absolute all-pointer-events" size="32px" name="info" color="white" style="top: 2px; right: 2px">
+        <q-img
+          :src="getImageUrl(image.imageBase64!)"
+          @click="showImages(image, images)"
+          class="images"
+        >
+          <q-icon
+            class="absolute all-pointer-events"
+            size="32px"
+            name="info"
+            color="white"
+            style="top: 2px; right: 2px"
+          >
             <q-tooltip>{{ image.fileName }} - {{ prettyBytes(image.fileSize) }} </q-tooltip>
           </q-icon>
-          <q-btn flat round icon="star" v-if="image.isCover" class="absolute all-pointer-events" size="sm" style="top: 2px; left: 2px">
+          <q-btn
+            flat
+            round
+            icon="star"
+            v-if="image.isCover"
+            class="absolute all-pointer-events"
+            size="sm"
+            style="top: 2px; left: 2px"
+          >
             <q-tooltip style="font-size: small">Cover</q-tooltip>
           </q-btn>
         </q-img>
@@ -91,7 +142,7 @@
 
 <script setup lang="ts">
 import { ref, type Ref, onMounted, computed, watch } from 'vue';
-import { useQuasar, QTableColumn } from 'quasar';
+import { useQuasar, type QTableColumn } from 'quasar';
 import { useRoute, useRouter } from 'vue-router';
 import { usePaperworkStore } from 'src/stores/paperworkStore';
 import { useDocumentStore } from 'src/stores/documentStore';
@@ -132,7 +183,15 @@ const columns: QTableColumn[] = [
     field: 'fileName',
     sortable: true,
   },
-  { name: 'fileSize', align: 'right' as const, label: 'Size', field: 'fileSize', sortable: true, format: (val: number) => `${prettyBytes(val)}`, style: 'width: 50px' },
+  {
+    name: 'fileSize',
+    align: 'right' as const,
+    label: 'Size',
+    field: 'fileSize',
+    sortable: true,
+    format: (val: number) => `${prettyBytes(val)}`,
+    style: 'width: 50px',
+  },
   { name: 'actions', label: 'Actions', field: 'actions', align: 'left' },
 ];
 // watch works directly on a ref
@@ -178,7 +237,7 @@ watch(paperworkId, async (newPaperworkId) => {
     message: 'Loading ...',
   });
   paperworkStore
-    .getPaperworksById(newPaperworkId as string)
+    .getPaperworksById(newPaperworkId)
     .then((response: GenericResponseData | undefined) => {
       processPaperworkData(response);
     })
@@ -221,7 +280,7 @@ async function onDownloadAttachment(attachmentId: string, attachmentFileName: st
     .then((response: GenericResponseData | undefined) => {
       if (response?.data) {
         $q.loading.hide();
-        const uint8Array = new Uint8Array(Object.values(response.data!));
+        const uint8Array = new Uint8Array(Object.values(response.data));
         // Create a Blob from the Uint8Array
         const blob = new Blob([uint8Array], { type: 'application/octet-stream' }); // Change the MIME type as needed
 
